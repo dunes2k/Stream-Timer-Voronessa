@@ -1,8 +1,11 @@
 import tkinter as tk
 import os
 from tkinter import ttk
-from tkinter.messagebox import showinfo, showwarning
+from tkinter.messagebox import showinfo, showwarning, showerror
 
+APP_NAME = "Stream Timer Voronessa"
+VERSION = "v1.1"
+COPYRIGHT = "Copyright © 2024 Artemy Gilvanov"
 
 def draw_window(minutes, color, speed, style, transparent):
     total_sec = minutes * 60
@@ -86,7 +89,7 @@ def draw_window(minutes, color, speed, style, transparent):
 
 
     window = tk.Toplevel()
-    window.title("Stream Timer Voronessa")
+    window.title(f"{APP_NAME}")
     window.attributes("-fullscreen", True)
     window.attributes("-alpha", transparent)
     window.configure(bg="#000000")
@@ -145,6 +148,7 @@ class Style:
         self.style_name = style_name
         self.style_path = style_path
         self.style_color = list()
+        self.delete_trigger = False
 
     def set_color(self, style_color):
         self.style_color.append(style_color)
@@ -152,22 +156,50 @@ class Style:
     def get_style(self):
         return self.style_name, self.style_path, self.style_color
 
+    def set_delete_trigger(self, delete_trigger):
+        self.delete_trigger = delete_trigger
+
+    def get_delete_trigger(self):
+        return self.delete_trigger
+
 
 def main():
+    def error_directory():
+        ERROR_MESSAGE = ("clock_pack directory error!"
+        "\nThe clock_pack folder seems to be missing or it doesn't contain any styles.")
+        showerror(title=f"{APP_NAME}", message=f"{ERROR_MESSAGE}")
+        return False
+
+
     styles_storage = []
-    with os.scandir(path="clock_pack/") as check_pack:
-        for pack in check_pack:
-            if pack.name != "how_works.txt":
+
+    try:
+        with os.scandir(path="clock_pack/") as check_pack:
+            for pack in check_pack:
                 styles_storage.append(Style(pack.name, pack.path))
 
-    for style_object in styles_storage:
-        if os.path.isfile(path=f"{style_object.get_style()[1]}/!empty.txt"):
-            with os.scandir(path=f"{style_object.get_style()[1]}/") as style_color:
-                for colors in style_color:
-                    if colors.name != "!empty.txt":
-                        if os.path.isfile(path=f"{style_object.get_style()[1]}/{colors.name}/include.txt"):
+        for style_object in styles_storage:
+            if os.path.isfile(path=f"{style_object.get_style()[1]}/!empty"):
+                with os.scandir(path=f"{style_object.get_style()[1]}/") as style_color:
+                    for colors in style_color:
+                        if os.path.isfile(path=f"{style_object.get_style()[1]}/{colors.name}/include"):
                             style_object.set_color(colors.name)
+            else:
+                style_object.set_delete_trigger(True)
 
+        cache_styles = []
+
+        for candidate in styles_storage:
+            if not candidate.get_delete_trigger():
+                cache_styles.append(candidate)
+
+        styles_storage = cache_styles[:]
+
+        directory_verified = True
+        directory_verified = True if len(styles_storage) > 0 else False
+
+    except FileNotFoundError:
+        directory_verified = False
 
     def choose_colors(style_choose):
         for style_object in styles_storage:
@@ -178,7 +210,8 @@ def main():
 
     def start_timer():
         def warning():
-            showwarning(title="Stream Timer Voronessa", message="Incorrectly entered time!")
+            WARNING_MESSAGE = "Incorrectly entered time!"
+            showwarning(title=f"{APP_NAME}", message=f"{WARNING_MESSAGE}")
         try:
             time_point = int(set_time.get())
             if time_point == 0:
@@ -194,27 +227,28 @@ def main():
 
 
     def about_message():
-        showinfo(title="Stream Timer Voronessa", message=("Stream Timer Voronessa 1.0 by Artemy Gilvanov"
-        "\n\nabout styles:\n- icon by Artemy Gilvanov\n- in default style used font Avocado by LyonsType"
-        "\n- ASCII style by Artemy Gilvanov\n- in ceramic style used font"
-        " Replicant by João G. Gonçalves\n- in tech style used font Werkzeug by Dima Grenev"
-        "\n\ntechnical:\n- Tcl/Tk 8.6.13\n- Python 3.12.2"
-        "\n- nuitka compiler if it is a binary file"))
+        ABOUT_MESSAGE = ("about styles:\n- icon by Artemy Gilvanov\n- in default style used font Avocado by LyonsType"
+        "\n- ASCII style by Artemy Gilvanov\n- in ceramic style used font Replicant by João G. Gonçalves\n"
+        "- in tech style used font Werkzeug by Dima Grenev\n\ntechnical:\n- Tcl/Tk 8.6.13\n- Python 3.12.2"
+        "\n- nuitka compiler if it is a binary file")
+        showinfo(title=f"{APP_NAME}", message=f"{APP_NAME} {VERSION}\n{COPYRIGHT}\n\n{ABOUT_MESSAGE}")
 
 
-    COLOR_LST = [x for x in styles_storage[0].get_style()[2]]
-    SPEED_LST = [1, 2, 3, 4]
-    STYLE_LST = [x.get_style()[0] for x in styles_storage]
-    TRANSPARENT_LST = [100, 80, 60, 40, 20]
+    color_lst = [x for x in styles_storage[0].get_style()[2]] if directory_verified else ["not found"]
+    speed_lst = [1, 2, 3, 4]
+    styles_lst = [x.get_style()[0] for x in styles_storage] if directory_verified else ["not found"]
+    transparent_lst = [100, 80, 60, 40, 20]
 
     main_window = tk.Tk()
-    main_window.title("Stream Timer Voronessa")
+    main_window.title(f"{APP_NAME}")
     main_window.geometry("917x50")
     main_window.resizable(False, False)
     main_window.iconphoto(True, tk.PhotoImage(file="icon.png"))
     main_menu = tk.Menu()
     main_menu.add_cascade(label="About", command=about_message)
     main_window.config(menu=main_menu)
+
+    directory_exists = error_directory() if not directory_verified else True
 
     time_label = ttk.Label(main_window, text="set time minutes")
     color_label = ttk.Label(main_window, text="set color")
@@ -226,20 +260,25 @@ def main():
     set_time = ttk.Entry(main_window)
     set_time.insert(-1, "1")
 
-    set_color = ttk.Combobox(main_window, values=COLOR_LST, state="readonly")
+    set_color = ttk.Combobox(main_window, values=color_lst, state="readonly")
     set_color.current(0)
 
-    set_speed = ttk.Combobox(main_window, values=SPEED_LST, state="readonly")
+    set_speed = ttk.Combobox(main_window, values=speed_lst, state="readonly")
     set_speed.current(0)
 
-    set_style = ttk.Combobox(main_window, values=STYLE_LST, state="readonly")
+    set_style = ttk.Combobox(main_window, values=styles_lst, state="readonly")
     set_style.bind("<<ComboboxSelected>>", lambda event: choose_colors(set_style.get()))
     set_style.current(0)
 
-    set_transparent = ttk.Combobox(main_window, values=TRANSPARENT_LST, state="readonly")
+    set_transparent = ttk.Combobox(main_window, values=transparent_lst, state="readonly")
     set_transparent.current(1)
 
-    start_button = ttk.Button(main_window, text="start", width=25, command=start_timer)
+    start_button = ttk.Button(main_window, text="start", width=25)
+
+    if not directory_exists:
+        start_button.configure(command=error_directory)
+    else:
+        start_button.configure(command=start_timer)
 
     time_label.grid(row=0, column=0, padx=5)
     color_label.grid(row=0, column=1, padx=5)

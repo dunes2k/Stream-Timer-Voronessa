@@ -1,9 +1,0 @@
-clock_pack directory |
-                     |
-                styles directory (ASCII, ceramic, default etc...)
-                                             |
-                                             |
-                                colors directory (white, red, blue etc...)
-                                                    |
-                                                    |
-                                                digit files directory (_0.png, 0.png, 1.png etc...)
