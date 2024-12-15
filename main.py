@@ -251,12 +251,12 @@ def main():
                 set_color.current(0)
 
 
-    def start_timer():
+    def start_timer(preset=False):
         def warning():
             WARNING_MESSAGE = "Incorrectly entered time!"
             showwarning(title=f"{APP_NAME}", message=f"{WARNING_MESSAGE}")
         try:
-            time_point = int(set_time.get())
+            time_point = int(set_time.get()) if not preset else preset
             if time_point == 0 or time_point > 5940:
                 warning()
             else:
@@ -287,9 +287,6 @@ def main():
     main_window.geometry("890x47")
     main_window.resizable(False, False)
     main_window.iconphoto(True, tk.PhotoImage(file="icon.png"))
-    main_menu = tk.Menu()
-    main_menu.add_cascade(label="About", command=about_message)
-    main_window.config(menu=main_menu)
 
     directory_exists = error_directory() if not directory_verified else True
 
@@ -301,7 +298,7 @@ def main():
     launch_label = ttk.Label(main_window, text="launch", width=25)
 
     set_time = ttk.Entry(main_window, width=25)
-    set_time.insert(-1, "1")
+    set_time.insert(-1, "3")
 
     set_color = ttk.Combobox(main_window, values=color_lst, state="readonly", width=25)
     set_color.current(0)
@@ -317,6 +314,28 @@ def main():
     set_transparent.current(1)
 
     start_button = ttk.Button(main_window, text="start", width=25)
+
+    class MenuPresets:
+        def ten_minutes():
+            start_timer(10)
+        def half_an_hour():
+            start_timer(30)
+        def one_hour():
+            start_timer(60)
+        def an_hour_and_a_half():
+            start_timer(90)
+        def two_hour():
+            start_timer(120)
+
+
+    main_menu = tk.Menu()
+    main_menu.add_cascade(label="10 minutes", command=MenuPresets.ten_minutes)
+    main_menu.add_cascade(label="30 minutes", command=MenuPresets.half_an_hour)
+    main_menu.add_cascade(label="1 hour", command=MenuPresets.one_hour)
+    main_menu.add_cascade(label="1.5 hours", command=MenuPresets.an_hour_and_a_half)
+    main_menu.add_cascade(label="2 hours", command=MenuPresets.two_hour)
+    main_menu.add_cascade(label="About", command=about_message)
+    main_window.config(menu=main_menu)
 
     if not directory_exists:
         start_button.configure(command=error_directory)
