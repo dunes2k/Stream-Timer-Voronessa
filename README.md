@@ -37,5 +37,4 @@ clock_pack directory |
 - The image size should be 192 x 360 pixels.
 - The image must be in PNG format.
 ## Some trouble
-- There is a problem with setting more than 59 minutes. I will need to investigate this further to understand the issue.
 - There is a problem with the cycle not stopping when the timer window is destroyed. A non-critical error occurs, but it does not affect the operation of the program. The issue has not been resolved yet.
