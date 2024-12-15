@@ -4,13 +4,39 @@ from tkinter import ttk
 from tkinter.messagebox import showinfo, showwarning, showerror
 
 APP_NAME = "Stream Timer Voronessa"
-VERSION = "v1.1"
+VERSION = "v1.2"
 COPYRIGHT = "Copyright © 2024 Artemy Gilvanov"
 
-def draw_window(minutes, color, speed, style, transparent):
-    total_sec = minutes * 60
-    total_hour = minutes // 60 if minutes % 60 == 0 else 0
+class TimeKeeper:
+    def __init__(self):
+        self.hours = 0
+        self.minutes = 0
+        self.seconds = 0
 
+    def set_time_point(self, time_point):
+        self.time_point = time_point
+        self.hours = time_point // 60
+        self.minutes = time_point - time_point // 60 * 60
+
+    def get_total_seconds(self):
+        return self.time_point * 60
+
+    def get_time_digit(self):
+        return (self.hours, self.minutes, self.seconds)
+
+    def count_down(self):
+        if self.minutes == 0 and self.seconds == 0:
+            if self.hours != 0:
+                self.hours -= 1
+                self.minutes = 60
+        if self.minutes != 0 and self.seconds == 0:
+            self.minutes -= 1
+            self.seconds = 59
+        else:
+            self.seconds -= 1
+
+
+def draw_window(minutes, color, speed, style, transparent):
     if speed == 1:
         speed = 1
     elif speed == 2:
@@ -65,27 +91,44 @@ def draw_window(minutes, color, speed, style, transparent):
             minutes_b.configure(image=img_digit_minutes_b)
             minutes_b.image = img_digit_minutes_b
 
+        if hours <= 9:
+            img_digit_hours_b = tk.PhotoImage(file=f"clock_pack/{style}/{color}/{hours}.png")
+            hours_b.configure(image=img_digit_hours_b)
+            hours_b.image = img_digit_hours_b
 
-    def tksleep(time_second):
-        milliseconds = int(time_second*1000)
+            img_digit_hours_a = tk.PhotoImage(file=f"clock_pack/{style}/{color}/0.png")
+            hours_a.configure(image=img_digit_hours_a)
+            hours_a.image = img_digit_hours_a
+        else:
+            img_digit_hours_a = tk.PhotoImage(file=f"clock_pack/{style}/{color}/{str(hours)[0]}.png")
+            hours_a.configure(image=img_digit_hours_a)
+            hours_a.image = img_digit_hours_a
+
+            img_digit_hours_b = tk.PhotoImage(file=f"clock_pack/{style}/{color}/{str(hours)[1]}.png")
+            hours_b.configure(image=img_digit_hours_b)
+            hours_b.image = img_digit_hours_b
+
+
+    def time_sleep(speed_control):
+        milliseconds = int(speed_control*1000)
         window = tk._get_default_root('sleep')
         var = tk.IntVar(window)
         window.after(milliseconds, var.set, 1)
         window.wait_variable(var)
 
 
-    def display(hours=0, minutes=0, total_seconds=0):
-        seconds = 0
-        for value in range(0, total_seconds):
-            tksleep(speed)
-            if hours > 0 or minutes > 0 and seconds == 0:
-                minutes -= 1
-                seconds += 59
-                display_update(hours, minutes, seconds)
-            else:
-                seconds -= 1
-                display_update(hours, minutes, seconds)
-        window.destroy()
+    def display(minutes=0):
+        if minutes == 0:
+            window.destroy()
+        else:
+            timer = TimeKeeper()
+            timer.set_time_point(minutes)
+            for value in range(0, timer.get_total_seconds()):
+                time_sleep(speed)
+                timer.count_down()
+                display_update(*timer.get_time_digit())
+
+            window.destroy()
 
 
     window = tk.Toplevel()
@@ -138,7 +181,7 @@ def draw_window(minutes, color, speed, style, transparent):
 
     window.bind("<Double-Button-1>", lambda event: display())
 
-    display(total_hour, minutes, total_sec)
+    display(minutes)
 
     window.mainloop()
 
@@ -214,7 +257,7 @@ def main():
             showwarning(title=f"{APP_NAME}", message=f"{WARNING_MESSAGE}")
         try:
             time_point = int(set_time.get())
-            if time_point == 0:
+            if time_point == 0 or time_point > 5940:
                 warning()
             else:
                 speed_point = int(set_speed.get())
@@ -241,7 +284,7 @@ def main():
 
     main_window = tk.Tk()
     main_window.title(f"{APP_NAME}")
-    main_window.geometry("917x50")
+    main_window.geometry("890x47")
     main_window.resizable(False, False)
     main_window.iconphoto(True, tk.PhotoImage(file="icon.png"))
     main_menu = tk.Menu()
@@ -250,27 +293,27 @@ def main():
 
     directory_exists = error_directory() if not directory_verified else True
 
-    time_label = ttk.Label(main_window, text="set time minutes")
-    color_label = ttk.Label(main_window, text="set color")
-    style_label = ttk.Label(main_window, text="set style")
-    speed_label = ttk.Label(main_window, text="speed modify")
-    transparent_label = ttk.Label(main_window, text="darkening %")
-    launch_label = ttk.Label(main_window, text="launch")
+    time_label = ttk.Label(main_window, text="set time minutes", width=25)
+    color_label = ttk.Label(main_window, text="set color", width=25)
+    style_label = ttk.Label(main_window, text="set style", width=25)
+    speed_label = ttk.Label(main_window, text="speed modify", width=25)
+    transparent_label = ttk.Label(main_window, text="darkening %", width=25)
+    launch_label = ttk.Label(main_window, text="launch", width=25)
 
-    set_time = ttk.Entry(main_window)
+    set_time = ttk.Entry(main_window, width=25)
     set_time.insert(-1, "1")
 
-    set_color = ttk.Combobox(main_window, values=color_lst, state="readonly")
+    set_color = ttk.Combobox(main_window, values=color_lst, state="readonly", width=25)
     set_color.current(0)
 
-    set_speed = ttk.Combobox(main_window, values=speed_lst, state="readonly")
+    set_speed = ttk.Combobox(main_window, values=speed_lst, state="readonly", width=25)
     set_speed.current(0)
 
-    set_style = ttk.Combobox(main_window, values=styles_lst, state="readonly")
+    set_style = ttk.Combobox(main_window, values=styles_lst, state="readonly", width=25)
     set_style.bind("<<ComboboxSelected>>", lambda event: choose_colors(set_style.get()))
     set_style.current(0)
 
-    set_transparent = ttk.Combobox(main_window, values=transparent_lst, state="readonly")
+    set_transparent = ttk.Combobox(main_window, values=transparent_lst, state="readonly", width=25)
     set_transparent.current(1)
 
     start_button = ttk.Button(main_window, text="start", width=25)
@@ -293,6 +336,13 @@ def main():
     set_style.grid(row=1, column=3, padx=5)
     set_transparent.grid(row=1, column=4, padx=5)
     start_button.grid(row=1, column=5, padx=5)
+
+    main_window.columnconfigure(index=0, weight=1, uniform="column")
+    main_window.columnconfigure(index=1, weight=1, uniform="column")
+    main_window.columnconfigure(index=2, weight=1, uniform="column")
+    main_window.columnconfigure(index=3, weight=1, uniform="column")
+    main_window.columnconfigure(index=4, weight=1, uniform="column")
+    main_window.columnconfigure(index=5, weight=1, uniform="column")
 
     main_window.mainloop()
 
