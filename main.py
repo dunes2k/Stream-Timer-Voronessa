@@ -272,7 +272,9 @@ def main():
     def about_message():
         ABOUT_MESSAGE = ("about styles:\n- icon by Artemy Gilvanov\n- in default style used font Avocado by LyonsType"
         "\n- ASCII style by Artemy Gilvanov\n- in ceramic style used font Replicant by João G. Gonçalves\n"
-        "- in tech style used font Werkzeug by Dima Grenev\n\ntechnical:\n- Tcl/Tk 8.6.13\n- Python 3.12.2"
+        "- in tech style used font Werkzeug by Dima Grenev\n- in cutouts style used font Halo Grotesk by Roman Bobkov"
+        "\n- in pressure style used font Avocado by LyonsType"
+        "\n\ntechnical:\n- Tcl/Tk 8.6.13\n- Python 3.12.2"
         "\n- nuitka compiler if it is a binary file")
         showinfo(title=f"{APP_NAME}", message=f"{APP_NAME} {VERSION}\n{COPYRIGHT}\n\n{ABOUT_MESSAGE}")
 
