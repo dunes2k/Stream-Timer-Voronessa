@@ -1,7 +1,7 @@
 # Stream Timer Voronessa
 ![icon](https://github.com/user-attachments/assets/33c3888d-a2fc-4852-8d9e-478c6847ef3f)
 #### Easy to use, written in Python using Tkinter.
-#### Download the installation file for Windows: https://github.com/dunes2k/Stream-Timer-Voronessa/releases/tag/v1.1
+#### Download the installation file for Windows: https://github.com/dunes2k/Stream-Timer-Voronessa/releases/tag/v1.2
 ![introduction](https://github.com/user-attachments/assets/90aec769-8fd4-40e0-b70f-d9dde4d3b90e)
 ## How to start using Voronessa?
 - Download this repository, then run main.py
