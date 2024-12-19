@@ -88,10 +88,10 @@ class ControlState:
 
                     if record_state:
                         with open("state", "w", encoding="utf-8") as state_write:
-                            state_write.writelines(f"@{time}\n{style}\n{color}\n&{speed}\n*{transparent}")
+                            state_write.writelines(f"{time}\n{style}\n{color}\n{speed}\n{transparent}")
                 else:
                     with open("state", "w", encoding="utf-8") as state_write:
-                        state_write.writelines(f"@{time}\n{style}\n{color}\n&{speed}\n*{transparent}")
+                        state_write.writelines(f"{time}\n{style}\n{color}\n{speed}\n{transparent}")
         else:
             with open("state", "w", encoding="utf-8") as state_write:
                 state_write.writelines(f"@{time}\n{style}\n{color}\n&{speed}\n*{transparent}")
@@ -348,12 +348,20 @@ def main():
         "\n- nuitka compiler if it is a binary file")
         showinfo(title=f"{APP_NAME}", message=f"{APP_NAME} {VERSION}\n{COPYRIGHT}\n\n{ABOUT_MESSAGE}")
 
+    state_done = state.load_state()
 
-    color_lst = [x for x in styles_storage[0].get_style()[2]] if directory_verified else ["not found"]
+    color_lst = None
+
+    if not state_done:
+        color_lst = [x for x in styles_storage[0].get_style()[2]] if directory_verified else ["not found"]
+    else:
+        for personal_color in styles_storage:
+            if personal_color.get_style()[0] == state.get_state()[0]:
+                color_lst = personal_color.get_style()[2][:]
+
     speed_lst = [1, 2, 3, 4]
     styles_lst = [x.get_style()[0] for x in styles_storage] if directory_verified else ["not found"]
     transparent_lst = [100, 80, 60, 40, 20]
-
 
     main_window = tk.Tk()
     main_window.title(f"{APP_NAME}")
@@ -379,7 +387,6 @@ def main():
     set_transparent = ttk.Combobox(main_window, values=transparent_lst, state="readonly", width=25)
     start_button = ttk.Button(main_window, text="start", width=25)
 
-    state_done = state.load_state()
 
     if not state_done:
         set_time.insert(0, "3")
