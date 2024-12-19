@@ -1,0 +1,21 @@
+Stream Timer Voronessa
+
+ver 1.3
+[fixed] timer window focus
+[add] saving the state at closing
+[add] loading the state at startup
+[add] new style
+[fixed] a non-critical error when manually interrupting the timer
+
+ver 1.2
+[fixed] max timer value 5940 minutes (99 hours)
+[fixed] start window displaying widgets
+[add] menu time presets
+[add] two new styles
+
+ver 1.1
+[fixed] fixed errors in scanning the clock_pack directory
+[added] error dialogs
+
+ver 1.0
+[release] the first version

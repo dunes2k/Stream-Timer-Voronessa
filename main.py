@@ -4,7 +4,7 @@ from tkinter import ttk
 from tkinter.messagebox import showinfo, showwarning, showerror
 
 APP_NAME = "Stream Timer Voronessa"
-VERSION = "v1.2"
+VERSION = "v1.3"
 COPYRIGHT = "Copyright © 2024 Artemy Gilvanov"
 
 class TimeKeeper:
@@ -36,15 +36,76 @@ class TimeKeeper:
             self.seconds -= 1
 
 
+class ControlState:
+    def __init__(self, styles):
+        self.styles = styles
+        self.load_style, self.load_color = None, None
+        self.load_time, self.load_speed = None, None
+        self.load_transparent = None
+
+    def load_state(self):
+        if os.path.isfile(path="state"):
+            with open("state", "r", encoding="utf-8") as state_read:
+                cache_state = list()
+                for element in state_read:
+                    cache_state.append(element.replace("\n", ""))
+                for obj_style in self.styles:
+                    if obj_style.get_style()[0] in cache_state:
+                        for color_style in obj_style.get_style()[2]:
+                            if color_style in cache_state:
+                                self.load_style = obj_style.get_style()[0]
+                                self.load_color = color_style
+                                for value in cache_state:
+                                    if value[0] == "@":
+                                        self.load_time = int(value[1:])
+                                    elif value[0] == "&":
+                                        self.load_speed = int(value[1:])
+                                    elif value[0] == "*":
+                                        self.load_transparent = int(value[1:])
+
+                                return True
+        else:
+            return False
+
+    def get_state(self):
+        return self.load_style, self.load_color, self.load_time, self.load_speed, self.load_transparent
+
+    def save_state(self, style, color, time, speed, transparent):
+        if os.path.isfile(path="state"):
+            with open("state", "r", encoding="utf-8") as state_read:
+                cache_state = list()
+                record_state = True
+                time = "@" + str(time)
+                speed = "&" + str(speed)
+                transparent = "*" + str(transparent)
+                for element in state_read:
+                    cache_state.append(element.replace("\n", ""))
+                if len(cache_state) == 5:
+                    if style in cache_state and color in cache_state:
+                        if time in cache_state and speed in cache_state:
+                            if transparent in cache_state:
+                                record_state = False
+
+                    if record_state:
+                        with open("state", "w", encoding="utf-8") as state_write:
+                            state_write.writelines(f"@{time}\n{style}\n{color}\n&{speed}\n*{transparent}")
+                else:
+                    with open("state", "w", encoding="utf-8") as state_write:
+                        state_write.writelines(f"@{time}\n{style}\n{color}\n&{speed}\n*{transparent}")
+        else:
+            with open("state", "w", encoding="utf-8") as state_write:
+                state_write.writelines(f"@{time}\n{style}\n{color}\n&{speed}\n*{transparent}")
+
+
 def draw_window(minutes, color, speed, style, transparent):
     if speed == 1:
-        speed = 1
+        speed = 1000
     elif speed == 2:
-        speed = 0.4
+        speed = 400
     elif speed == 3:
-        speed = 0.1
+        speed = 100
     elif speed == 4:
-        speed = 0.02
+        speed = 70
 
     if transparent == 80:
         transparent = 0.8
@@ -109,29 +170,28 @@ def draw_window(minutes, color, speed, style, transparent):
             hours_b.image = img_digit_hours_b
 
 
-    def time_sleep(speed_control):
-        milliseconds = int(speed_control*1000)
-        window = tk._get_default_root('sleep')
-        var = tk.IntVar(window)
-        window.after(milliseconds, var.set, 1)
-        window.wait_variable(var)
-
-
-    def display(minutes=0):
-        if minutes == 0:
-            window.destroy()
-        else:
-            timer = TimeKeeper()
-            timer.set_time_point(minutes)
-            for value in range(0, timer.get_total_seconds()):
-                time_sleep(speed)
-                timer.count_down()
+    def display(minutes=0, stop_flag=False):
+        timer = TimeKeeper()
+        timer.set_time_point(minutes)
+        def time_cycle():
+            timer.count_down()
+            h, m, s = timer.get_time_digit()
+            total = h + m + s
+            if total != 0:
                 display_update(*timer.get_time_digit())
+                window.after(speed, time_cycle)
+            else:
+                display_update(0, 0, 0)
+                window.destroy()
 
+        if not stop_flag:
+            time_cycle()
+        else:
             window.destroy()
 
 
     window = tk.Toplevel()
+    window.focus_force()
     window.title(f"{APP_NAME}")
     window.attributes("-fullscreen", True)
     window.attributes("-alpha", transparent)
@@ -179,7 +239,7 @@ def draw_window(minutes, color, speed, style, transparent):
     window.columnconfigure(index=8, weight=1, uniform="column")
     window.columnconfigure(index=9, weight=1, uniform="column")
 
-    window.bind("<Double-Button-1>", lambda event: display())
+    window.bind("<Double-Button-1>", lambda event: display(stop_flag=True))
 
     display(minutes)
 
@@ -216,6 +276,7 @@ def main():
 
     styles_storage = []
 
+
     try:
         with os.scandir(path="clock_pack/") as check_pack:
             for pack in check_pack:
@@ -250,6 +311,7 @@ def main():
                 set_color.configure(values=style_object.get_style()[2])
                 set_color.current(0)
 
+    state = ControlState(styles_storage)
 
     def start_timer(preset=False):
         def warning():
@@ -264,17 +326,25 @@ def main():
                 color_point = set_color.get()
                 style_point = set_style.get()
                 transparent_point = int(set_transparent.get())
+                state.save_state(style_point, color_point, time_point, speed_point, transparent_point)
                 draw_window(time_point, color_point, speed_point, style_point, transparent_point)
         except ValueError:
             warning()
 
 
     def about_message():
-        ABOUT_MESSAGE = ("about styles:\n- icon by Artemy Gilvanov\n- in default style used font Avocado by LyonsType"
-        "\n- ASCII style by Artemy Gilvanov\n- in ceramic style used font Replicant by João G. Gonçalves\n"
-        "- in tech style used font Werkzeug by Dima Grenev\n- in cutouts style used font Halo Grotesk by Roman Bobkov"
+        ABOUT_MESSAGE = ("about styles:"
+        "\n- icon by Artemy Gilvanov"
+        "\n- in default style used font Avocado by LyonsType"
+        "\n- ASCII style by Artemy Gilvanov"
+        "\n- in ceramic style used font Replicant by João G. Gonçalves"
+        "\n- in tech style used font Werkzeug by Dima Grenev"
+        "\n- in cutouts style used font Halo Grotesk by Roman Bobkov"
         "\n- in pressure style used font Avocado by LyonsType"
-        "\n\ntechnical:\n- Tcl/Tk 8.6.13\n- Python 3.12.2"
+        "\n- sector style by Artemy Gilvanov"
+        "\n\ntechnical:"
+        "\n- Tcl/Tk 8.6.13"
+        "\n- Python 3.12.2"
         "\n- nuitka compiler if it is a binary file")
         showinfo(title=f"{APP_NAME}", message=f"{APP_NAME} {VERSION}\n{COPYRIGHT}\n\n{ABOUT_MESSAGE}")
 
@@ -283,6 +353,7 @@ def main():
     speed_lst = [1, 2, 3, 4]
     styles_lst = [x.get_style()[0] for x in styles_storage] if directory_verified else ["not found"]
     transparent_lst = [100, 80, 60, 40, 20]
+
 
     main_window = tk.Tk()
     main_window.title(f"{APP_NAME}")
@@ -299,33 +370,44 @@ def main():
     transparent_label = ttk.Label(main_window, text="darkening %", width=25)
     launch_label = ttk.Label(main_window, text="launch", width=25)
 
+
     set_time = ttk.Entry(main_window, width=25)
-    set_time.insert(-1, "3")
-
     set_color = ttk.Combobox(main_window, values=color_lst, state="readonly", width=25)
-    set_color.current(0)
-
     set_speed = ttk.Combobox(main_window, values=speed_lst, state="readonly", width=25)
-    set_speed.current(0)
-
     set_style = ttk.Combobox(main_window, values=styles_lst, state="readonly", width=25)
     set_style.bind("<<ComboboxSelected>>", lambda event: choose_colors(set_style.get()))
-    set_style.current(0)
-
     set_transparent = ttk.Combobox(main_window, values=transparent_lst, state="readonly", width=25)
-    set_transparent.current(1)
-
     start_button = ttk.Button(main_window, text="start", width=25)
+
+    state_done = state.load_state()
+
+    if not state_done:
+        set_time.insert(0, "3")
+        set_color.current(0)
+        set_speed.current(0)
+        set_style.current(0)
+        set_transparent.current(1)
+    else:
+        set_time.insert(0, state.get_state()[2])
+        set_color.current(color_lst.index(state.get_state()[1]))
+        set_speed.current(speed_lst.index(state.get_state()[3]))
+        set_style.current(styles_lst.index(state.get_state()[0]))
+        set_transparent.current(transparent_lst.index(state.get_state()[4]))
+
 
     class MenuPresets:
         def ten_minutes():
             start_timer(10)
+
         def half_an_hour():
             start_timer(30)
+
         def one_hour():
             start_timer(60)
+
         def an_hour_and_a_half():
             start_timer(90)
+
         def two_hour():
             start_timer(120)
 
