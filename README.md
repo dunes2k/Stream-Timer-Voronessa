@@ -36,5 +36,3 @@ clock_pack directory |
 - The image file should have an opaque black background in order to avoid any display issues.
 - The image size should be 192 x 360 pixels.
 - The image must be in PNG format.
-## Some trouble
-- There is a problem with the cycle not stopping when the timer window is destroyed. A non-critical error occurs, but it does not affect the operation of the program. The issue has not been resolved yet.
