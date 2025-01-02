@@ -4,7 +4,7 @@ from tkinter import ttk
 from tkinter.messagebox import showinfo, showwarning, showerror
 
 APP_NAME = "Stream Timer Voronessa"
-VERSION = "v1.3"
+VERSION = "v1.3.1"
 COPYRIGHT = "Copyright © 2024 Artemy Gilvanov"
 
 class TimeKeeper:
@@ -194,6 +194,7 @@ def draw_window(minutes, color, speed, style, transparent):
     window.focus_force()
     window.title(f"{APP_NAME}")
     window.attributes("-fullscreen", True)
+    window.wait_visibility(window)
     window.attributes("-alpha", transparent)
     window.configure(bg="#000000")
 
@@ -420,12 +421,12 @@ def main():
 
 
     main_menu = tk.Menu()
-    main_menu.add_cascade(label="10 minutes", command=MenuPresets.ten_minutes)
-    main_menu.add_cascade(label="30 minutes", command=MenuPresets.half_an_hour)
-    main_menu.add_cascade(label="1 hour", command=MenuPresets.one_hour)
-    main_menu.add_cascade(label="1.5 hours", command=MenuPresets.an_hour_and_a_half)
-    main_menu.add_cascade(label="2 hours", command=MenuPresets.two_hour)
-    main_menu.add_cascade(label="About", command=about_message)
+    main_menu.add_command(label="10 minutes", command=MenuPresets.ten_minutes)
+    main_menu.add_command(label="30 minutes", command=MenuPresets.half_an_hour)
+    main_menu.add_command(label="1 hour", command=MenuPresets.one_hour)
+    main_menu.add_command(label="1.5 hours", command=MenuPresets.an_hour_and_a_half)
+    main_menu.add_command(label="2 hours", command=MenuPresets.two_hour)
+    main_menu.add_command(label="About", command=about_message)
     main_window.config(menu=main_menu)
 
     if not directory_exists:
@@ -453,6 +454,13 @@ def main():
     main_window.columnconfigure(index=3, weight=1, uniform="column")
     main_window.columnconfigure(index=4, weight=1, uniform="column")
     main_window.columnconfigure(index=5, weight=1, uniform="column")
+
+    main_window.rowconfigure(index=0, weight=1)
+    main_window.rowconfigure(index=1, weight=1)
+    main_window.rowconfigure(index=2, weight=1)
+    main_window.rowconfigure(index=3, weight=1)
+    main_window.rowconfigure(index=4, weight=1)
+    main_window.rowconfigure(index=5, weight=1)
 
     main_window.mainloop()
 
