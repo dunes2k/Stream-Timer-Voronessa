@@ -7,6 +7,8 @@ APP_NAME = "Stream Timer Voronessa"
 VERSION = "v1.3.1"
 COPYRIGHT = "Copyright © 2024 Artemy Gilvanov"
 
+SYSTEM = os.name
+
 class TimeKeeper:
     def __init__(self):
         self.hours = 0
@@ -365,8 +367,15 @@ def main():
     transparent_lst = [100, 80, 60, 40, 20]
 
     main_window = tk.Tk()
+    main_window.style = ttk.Style()
+
+    if SYSTEM != "nt":
+        main_window.style.theme_use("clam")
+    else:
+        main_window.style.theme_use("vista")
+
     main_window.title(f"{APP_NAME}")
-    main_window.geometry("890x47")
+    main_window.geometry("890x60")
     main_window.resizable(False, False)
     main_window.iconphoto(True, tk.PhotoImage(file="icon.png"))
 
